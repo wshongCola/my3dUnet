@@ -119,30 +119,6 @@ class MyTestCase(unittest.TestCase):
                 frag = image_data / gt_data
                 print("frag max: {}, frag min : {}".format(np.max(frag), np.min(frag)))
 
-    def test_show(self):
-        path_to_target_dir = '/home/wshong/Documents/data/unet3d_car/narrow_elev/simulate/results/2020-08-20-22-45-52_edelta_1.0_enum_3_uniformed_SNR_10_ntype_Rayleigh_simuTag_True/edelta_1.0_enum_3_uniformed_MazdaMPV_47.0000_narrow_elev'
-        path_to_gt = os.path.join(path_to_target_dir, 'gt.npy')
-        path_to_image = os.path.join(path_to_target_dir, 'image.npy')
-        path_to_pred = os.path.join(path_to_target_dir, 'pred.npy')
-        gt = np.load(path_to_gt)
-        image = np.load(path_to_image)
-        pred = np.load(path_to_pred)
-        gt_result = static_gt_from_cfg(cfg, path_to_gt)
-        portion_cumsum = np.array(cfg['result_cfg']['portion_cumsum'])
-        gt_ruler = gt_result['gt_ruler']
-        gt_static_cumsum = gt_result['gt_static_cumsum']
-        portion_thr = [np.inf]
-        for p in portion_cumsum:
-            dist = np.abs(gt_static_cumsum - p)
-            portion_thr.append(gt_ruler[np.argmin(dist)])
-        static_result = np.zeros(
-            shape=(
-                2,
-                len(portion_cumsum),
-                len(cfg['result_cfg']['map'])
-            )
-        )
-
 
 if __name__ == '__main__':
     unittest.main()

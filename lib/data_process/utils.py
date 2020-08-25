@@ -69,6 +69,21 @@ def show_volumes(datas):
         volume(scalar_field(images), vmin=0.0, vmax=1)
     mlab.show()
 
+def save_volume_fig_with_vmax(data, title, path_to_save, vmax):
+    mlab.figure("{}".format(title), bgcolor=(1, 1, 1))
+    mlab.view(azimuth=0, elevation=0, distance=10)
+    # yaw the camera (tilt left-right) y
+    # pitch the camera (tilt up-down) z
+    # roll control the absolute roll angle of the camera x
+    mlab.yaw(90)
+    mlab.pitch(80)
+    mlab.roll(-10)
+    volume(scalar_field(data), vmin=0.0, vmax=vmax)
+    # mlab.show()
+    mlab.savefig(path_to_save)
+    mlab.clf()
+    mlab.close()
+
 def show_volume_with_title(title, datas):
     mlab.figure(title, bgcolor=(1, 1, 1))
     mlab.figure(title)

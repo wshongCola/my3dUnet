@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 from lib.data_process.utils import show_volume, static_data_by_step, static_data_by_map, save_fig_by_data, \
-    show_volume_with_title, normalization_3d, show_volumes
+    show_volume_with_title, normalization_3d, show_volumes, save_volume_fig_with_vmax
 from lib.utils import construct_map_from_range
 from lib.config import pred_cfg
 import json
@@ -303,8 +303,8 @@ def draw_bar_chart_on_different_part_gt_from_gt(cfg, path_to_target_dir):
     plt.clf()
     plt.close()
 
-def show_volumn_of_relative_delta():
-    work_dir = '/home/wshong/Documents/data/unet3d_car/narrow_elev/simulate/results/2020-08-21-04-14-01_edelta_1.0_enum_3_uniformed_SNR_5_ntype_Rayleigh_simuTag_True/edelta_1.0_enum_3_uniformed_ToyotaTacoma_50.5000_narrow_elev'
+def save_volumn_fig_of_relative_delta_and_img(work_dir):
+    # work_dir = '/home/wshong/Documents/data/unet3d_car/narrow_elev/simulate/results/2020-08-21-04-14-01_edelta_1.0_enum_3_uniformed_SNR_5_ntype_Rayleigh_simuTag_True/edelta_1.0_enum_3_uniformed_ToyotaTacoma_50.5000_narrow_elev'
     target_files = ['image.npy', 'pred.npy', 'gt.npy']
     result = {}
     for file in target_files:
@@ -316,26 +316,20 @@ def show_volumn_of_relative_delta():
     std = np.std(gt.flatten().squeeze())
     gt_std = gt.copy()
     gt_std[gt <= std/3] = std * 3
-    show_order = ['image', 'pred', 'gt', 'rlt_delta', 'delta', 'rlt_image']
+    show_order = ['rlt_delta', 'rlt_image']
+    vmax_list = [1,10]
     result['rlt_delta'] = np.absolute(result['pred'] - gt) / (gt + 1.0)
     result['rlt_image'] = np.absolute(result['image'] - gt) / (gt + 1.0)
     result['delta'] = np.absolute(result['pred'] - gt)
-    #TODO: Smooth
-    # show_volume_with_title(
-    #     title=work_dir.split(os.sep)[-1] + '-'.join(show_order),
-    #     datas=np.concatenate([
-    #         # normalization_3d(result[show_order[3]]),
-    #         result[show_order[5]],
-    #         # normalization_3d(result[show_order[2]]),
-    #         # normalization_3d(result[show_order[1]]),
-    #         # normalization_3d(result[show_order[0]])
-    #     ], axis=0))
-    show_volumes(
-        datas = {
-            'rlt_delta': result['rlt_delta'],
-            'rlt_image': result['rlt_image'],
-        }
-    )
+    for v in vmax_list:
+        for item in show_order:
+            msg=dict(
+                data=result[item],
+                title='name:{} thr:{}'.format(item, v),
+                path_to_save=os.path.join(work_dir, '{}-vmax{}.png'.format(item, v)),
+                vmax=v
+            )
+            save_volume_fig_with_vmax(**msg)
 
 
 def show_volumn_of_several_targets():
@@ -357,4 +351,9 @@ def show_volumn_of_several_targets():
         ], axis=0))
 
 if __name__ == '__main__':
-    show_volumn_of_relative_delta()
+    # work_dir = '/home/wshong/Documents/data/unet3d_car/narrow_elev/simulate/results/2020-08-21-04-14-01_edelta_1.0_enum_3_uniformed_SNR_5_ntype_Rayleigh_simuTag_True/edelta_1.0_enum_3_uniformed_ToyotaTacoma_50.5000_narrow_elev'
+    work_dir = '/home/wshong/Documents/data/unet3d_car/narrow_elev/simulate/results'
+    for (dirpath, dirnames, filenames) in os.walk(work_dir):
+        for filename in filenames:
+            if 'result.json' in filename and 'uniform' in dirpath:
+                save_volumn_fig_of_relative_delta_and_img(dirpath)
