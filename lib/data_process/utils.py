@@ -3,8 +3,6 @@ import numpy as np
 from mayavi import mlab
 from mayavi.mlab import *
 from mayavi.tools.pipeline import volume, scalar_field
-from scipy.ndimage.interpolation import rotate as rotate_3D
-import matplotlib.pyplot as plt
 
 
 def show_volume_slice(filename='images.npy'):
@@ -25,7 +23,7 @@ def show_volume(filename='images.npy'):
     volume(scalar_field(images))
     mlab.show()
 
-def save_fig(filename):
+def save_fig_by_data(data, path_to_save, vmin=None, vmax=None):
     mlab.figure(bgcolor=(1, 1, 1))
     mlab.view(azimuth=0, elevation=0, distance=10)
     # yaw the camera (tilt left-right) y
@@ -34,55 +32,14 @@ def save_fig(filename):
     mlab.yaw(90)
     mlab.pitch(80)
     mlab.roll(-10)
-    if type(filename) == type(""):
-        images = np.absolute(np.load(filename))
+    if vmax is None:
+        volume(scalar_field(np.absolute(data)))
     else:
-        images = np.absolute(filename)
-    volume(scalar_field(images))
-    mlab.savefig(filename.replace('.npy', '.png'))
-    mlab.clf()
-    mlab.close()
-    # mlab.show()
-
-def save_fig_by_data(data, path_to_save):
-    mlab.figure(bgcolor=(1, 1, 1))
-    mlab.view(azimuth=0, elevation=0, distance=10)
-    # yaw the camera (tilt left-right) y
-    # pitch the camera (tilt up-down) z
-    # roll control the absolute roll angle of the camera x
-    mlab.yaw(90)
-    mlab.pitch(80)
-    mlab.roll(-10)
-    volume(scalar_field(np.absolute(data)))
+        volume(scalar_field(np.absolute(data)), vmin=vmin, vmax=vmax)
     mlab.savefig(path_to_save)
     mlab.clf()
     mlab.close()
     # mlab.show()
-
-def show_volumes(datas):
-    for k, v in datas.items():
-        mlab.figure("{}".format(k), bgcolor=(1, 1, 1))
-        if type(v) == type(""):
-            images = np.absolute(np.load(v))
-        else:
-            images = np.absolute(v)
-        volume(scalar_field(images), vmin=0.0, vmax=1)
-    mlab.show()
-
-def save_volume_fig_with_vmax(data, title, path_to_save, vmax):
-    mlab.figure("{}".format(title), bgcolor=(1, 1, 1))
-    mlab.view(azimuth=0, elevation=0, distance=10)
-    # yaw the camera (tilt left-right) y
-    # pitch the camera (tilt up-down) z
-    # roll control the absolute roll angle of the camera x
-    mlab.yaw(90)
-    mlab.pitch(80)
-    mlab.roll(-10)
-    volume(scalar_field(data), vmin=0.0, vmax=vmax)
-    # mlab.show()
-    mlab.savefig(path_to_save)
-    mlab.clf()
-    mlab.close()
 
 def show_volume_with_title(title, datas):
     mlab.figure(title, bgcolor=(1, 1, 1))
@@ -93,18 +50,6 @@ def show_volume_with_title(title, datas):
         images = np.absolute(datas)
     volume(scalar_field(images), vmin=0.0, vmax=1)
     mlab.show()
-
-def show_volumes_auto_roate_camera(datas):
-    for k, v in datas.items():
-        mlab.figure("{}".format(k))
-        if type(v) == type(""):
-            images = np.absolute(np.load(v))
-        else:
-            images = np.absolute(v)
-        volume(scalar_field(images), vmin=0.0, vmax=0.4)
-    mlab.show(stop=True)
-    print("OK")
-
 
 def split_back_and_mirror(azimuth_list):
     """
@@ -167,15 +112,6 @@ def compose_angles(dir_path, pitch_angle_list=None, azimuth_list=None):
     return sum_data
 
 
-def show_gt():
-    file_dir = '/mnt/media/data/3D_rec/unet3d/gt'
-    for car in os.listdir(file_dir):
-        file_path = os.path.join(file_dir, car)
-        data = np.load(file_path)
-        show_volume(data)
-        print(car)
-        # show_volume_slice(data)
-
 def normalization_3d(data):
     """
     normalize input data
@@ -188,29 +124,6 @@ def normalization_3d(data):
     mn = np.min(data)
     norm_array = np.array([(float(i) - mn) / (mx - mn) for i in flat]).reshape(shape)
     return norm_array
-
-def rotate_3d(data, theta, axis=2):
-    if axis == 2:
-        result = rotate_3D(input=data, angle=theta, axes=(0, 1))
-    elif axis == 1:
-        result = rotate_3D(input=data, angle=theta, axes=(0, 2))
-    elif axis == 0:
-        result = rotate_3D(input=data, angle=theta, axes=(1, 2))
-    else:
-        raise NotImplementedError
-    return result
-
-def log_file_extract(path_to_log_file, target_domain):
-    with open(path_to_log_file, 'r') as log_file:
-        for line in log_file:
-            line = line.strip('\n')
-            domain = line.split(':')[0]
-            if target_domain in domain:
-                data = line.split(':')[1]
-                log_file.close()
-                return data
-        log_file.close()
-        return None
 
 def add_noise(noise_type, SNR, signal, action):
     """
