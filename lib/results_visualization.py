@@ -9,74 +9,66 @@ from lib.utils import construct_map_from_range
 from lib.config import pred_cfg
 import json
 
-def save_figs(path_to_target_dir, cfg):
+def save_figs(path_to_target_dir, path_to_fig_dir, cfg, topics):
     """
     This function is used to save figs of 3D volumns from a stable view point. Catch a 2D fig of a 3D image.
     :param path_to_target_dir:
     :return:
     """
-    topics = [
-        'gt',
-        'image',
-        'pred',
-        'rlt_delta_vmax1',
-        'rlt_delta_vmax10',
-        'rlt_image_vmax1',
-        'rlt_image_vmax10',
-        'top_groups_cmp',
-        'top_groups_image',
-        'top_groups_pred',
-        'gt_static',
-        'loss_curve',
-        'bar_chart_of_img/prd2gt'
-    ]
+    if not os.path.exists(path_to_fig_dir):
+        os.mkdir(path_to_fig_dir)
     gt = np.load(os.path.join(path_to_target_dir, '{}.npy'.format('gt')))
     image = np.load(os.path.join(path_to_target_dir, '{}.npy'.format('image')))
     pred = np.load(os.path.join(path_to_target_dir, '{}.npy'.format('pred')))
     json_path = os.path.join(path_to_target_dir, 'result.json')
+    save_format = "eps"
     with open(json_path, 'r') as json_reader:
         result = json.load(json_reader)
     if 'gt' in topics:
         save_fig_by_data(
             gt,
-            os.path.join(path_to_target_dir, '{}.png'.format('gt'))
+            os.path.join(path_to_fig_dir, '{}.{}'.format('gt', "jpg")),
         )
     if 'image' in topics:
         save_fig_by_data(
             image,
-            os.path.join(path_to_target_dir, '{}.png'.format('image'))
+            os.path.join(path_to_fig_dir, '{}.{}'.format('image', "jpg"))
         )
     if 'pred' in topics:
         save_fig_by_data(
             pred,
-            os.path.join(path_to_target_dir, '{}.png'.format('pred'))
+            os.path.join(path_to_fig_dir, '{}.{}'.format('pred', "jpg")),
+            vmax=10
         )
+    if 'save_rlt_delta':
+        rlt_delta = np.absolute(pred - gt) / (gt + 1.0)
+        np.save(os.path.join(path_to_target_dir, '{}.{}'.format('rlt_delta', "npy")), rlt_delta)
     if 'rlt_delta_vmax1' in topics:
         save_fig_by_data(
             np.absolute(pred - gt) / (gt + 1.0),
-            os.path.join(path_to_target_dir, '{}.png'.format('rlt_delta_vmax1')),
+            os.path.join(path_to_fig_dir, '{}.{}'.format('rlt_delta_vmax1',"jpg")),
             vmax=1
         )
     if 'rlt_delta_vmax10' in topics:
         save_fig_by_data(
             np.absolute(pred - gt) / (gt + 1.0),
-            os.path.join(path_to_target_dir, '{}.png'.format('rlt_delta_vmax10')),
+            os.path.join(path_to_fig_dir, '{}.{}'.format('rlt_delta_vmax10', "jpg")),
             vmax=10
         )
     if 'rlt_image_vmax1' in topics:
         save_fig_by_data(
             np.absolute(image - gt) / (gt + 1.0),
-            os.path.join(path_to_target_dir, '{}.png'.format('rlt_image_vmax1')),
+            os.path.join(path_to_fig_dir, '{}.{}'.format('rlt_image_vmax1', "jpg")),
             vmax=1
         )
     if 'rlt_image_vmax10' in topics:
         save_fig_by_data(
             np.absolute(image - gt) / (gt + 1.0),
-            os.path.join(path_to_target_dir, '{}.png'.format('rlt_image_vmax10')),
+            os.path.join(path_to_fig_dir, '{}.{}'.format('rlt_image_vmax10', "jpg")),
             vmax=10
         )
     if 'gt_static' in topics:
-        path_to_save_gt_fig = os.path.join(path_to_target_dir, 'gt_static.png')
+        path_to_save_gt_fig = os.path.join(path_to_fig_dir, 'gt_static.{}'.format(save_format))
         gt_static_result = result['gt_static_result']
         gt_static_cumsum = result['gt_static_cumsum']
         car_name = result['car_name']
@@ -93,15 +85,14 @@ def save_figs(path_to_target_dir, cfg):
         plt.xlabel('value')
         plt.ylabel('count')
         plt.yscale('log')
-        # plt.show()
-        plt.savefig(path_to_save_gt_fig, format='png')
+        plt.savefig(path_to_save_gt_fig, format=save_format)
         plt.clf()
         plt.close()
     if 'top_groups_pred' in topics:
         mp = cfg['result_cfg']['map']
         static_result = np.reshape(np.array(result['top_group_static_result']), result['top_group_static_shape'])
         portion_cumsum = np.array(cfg['result_cfg']['portion_cumsum'])
-        save_path = os.path.join(path_to_target_dir, 'TopGroupPrd.png')
+        save_path = os.path.join(path_to_fig_dir, 'TopGroupPrd.{}'.format(save_format))
         label = [str(r) for r in mp]
         x = np.arange(len(static_result[0, 0, :]))
         plt.figure(figsize=(20, 10))
@@ -119,15 +110,14 @@ def save_figs(path_to_target_dir, cfg):
             -1] + '\n' + path_to_target_dir.split(os.sep)[-1] + '\n')
         plt.xlabel('prd/gt')
         plt.ylabel('static_num/data_size')
-        # plt.show()
-        plt.savefig(save_path, format='png')
+        plt.savefig(save_path, format=save_format)
         plt.clf()
         plt.close()
     if 'top_groups_image' in topics:
         mp = cfg['result_cfg']['map']
         static_result = np.reshape(np.array(result['top_group_static_result']), result['top_group_static_shape'])
         portion_cumsum = np.array(cfg['result_cfg']['portion_cumsum'])
-        save_path = os.path.join(path_to_target_dir, 'TopGroupImg.png')
+        save_path = os.path.join(path_to_fig_dir, 'TopGroupImg.{}'.format(save_format))
         label = [str(r) for r in mp]
         x = np.arange(len(static_result[0, 0, :]))
         plt.figure(figsize=(20, 10))
@@ -146,38 +136,59 @@ def save_figs(path_to_target_dir, cfg):
         plt.xlabel('img/gt')
         plt.ylabel('static_num/data_size')
         # plt.show()
-        plt.savefig(save_path, format='png')
+        plt.savefig(save_path, format=save_format)
         plt.clf()
         plt.close()
     if 'top_groups_cmp' in topics:
         static_result = np.reshape(np.array(result['top_group_static_result']), result['top_group_static_shape'])
+        gt_static_cumsum = result['gt_static_cumsum']
         gt_ruler = result['gt_ruler']
         portion_cumsum = np.array(cfg['result_cfg']['portion_cumsum'])
         portion_thr = [np.inf]
+        car_name = result['car_name']
+        angle = json_path.split(car_name + '_')[1]
+        angle = angle.split('_')[0]
+        angle = float(angle)
+        angle_list = [angle, angle + 1, angle + 2]
         for p in portion_cumsum:
             dist = np.abs(gt_static_cumsum - p)
             portion_thr.append(gt_ruler[np.argmin(dist)])
         for i in range(len(portion_thr) - 1):
             if i ==0:
-                save_path = os.path.join(path_to_target_dir, 'TopGroupCmp-{}-{}.png'.format(0, portion_cumsum[i]))
+                top_range = "{}-{}".format(0, portion_cumsum[i])
+                save_path = os.path.join(path_to_fig_dir, 'TopGroupCmp-{}.{}'.format(top_range, save_format))
             else:
-                save_path = os.path.join(path_to_target_dir, 'TopGroupCmp-{}-{}.png'.format(portion_cumsum[i - 1], portion_cumsum[i]))
-            if os.path.exists(save_path):
-                return
+                top_range = "{}-{}".format(portion_cumsum[i - 1], portion_cumsum[i])
+                save_path = os.path.join(path_to_fig_dir, 'TopGroupCmp-{}.{}'.format(top_range, save_format))
             mp = cfg['result_cfg']['map']
-            label = [str(r) for r in mp]
+            label = [str(r[1]) for r in mp]
             x = np.arange(len(static_result[0, 0, :]))
             plt.figure(save_path.split(os.sep)[-1], figsize=(20, 10))
-            bar_width = 0.3
-            plt.bar(x + bar_width/2, static_result[0, i, :], bar_width / 2, label='img2gt')
-            plt.bar(x - bar_width/2, static_result[1, i, :], bar_width / 2, label='prd2gt')
-            plt.legend()
+            bar_width = 0.4
+            plt.bar(x + bar_width/2 - 0.5, static_result[0, i, :], bar_width, label='Raw BP')
+            plt.bar(x - bar_width/2 - 0.5, static_result[1, i, :], bar_width, label='Ours')
+            font1 = {'family': 'Times New Roman',
+                     'weight': 'normal',
+                     'size': 23,
+                     }
+
+            plt.legend(prop=font1)
+            plt.tick_params(labelsize=23)
             plt.xticks(x, label)
-            plt.title('Top Group Cmp\n' + path_to_target_dir.split(os.sep)[-2].split('_', 1)[-1] + '\n' + path_to_target_dir.split(os.sep)[-1] + '\n' + save_path.split(os.sep)[-1].replace('.png', ''))
-            plt.xlabel('Portion')
-            plt.ylabel('static_num/data_size')
+            # plt.title('Top Group Cmp\n' + path_to_target_dir.split(os.sep)[-2].split('_', 1)[-1] + '\n' + path_to_target_dir.split(os.sep)[-1] + '\n' + save_path.split(os.sep)[-1].replace('.png', ''))
+            font2 = {'family': 'Times New Roman',
+                     'weight': 'normal',
+                     'size': 30,
+                     }
+            font3 = {'family': 'Times New Roman',
+                     'weight': 'normal',
+                     'size': 30,
+                     }
+            plt.title("Dominant Scatterers Error Histogram \n {}. Orbits:{}. Range:{}".format(car_name, str(angle_list), top_range), font2)
+            plt.xlabel('Absolute Relative Error', font3)
+            plt.ylabel('Percentage', font2)
             # plt.show()
-            plt.savefig(save_path, format='png')
+            plt.savefig(save_path, format=save_format)
             plt.clf()
             plt.close()
     if 'loss_curve' in topics:
@@ -198,10 +209,10 @@ def save_figs(path_to_target_dir, cfg):
         plt.title(path_to_save.rsplit(os.sep, 2)[1].split('_', 1)[-1])
         plt.legend()
         # plt.show()
-        plt.savefig(path_to_save, format='png')
+        plt.savefig(path_to_save, format=save_format)
         plt.clf()
     if 'bar_chart_of_img/prd2gt' in topics:
-        save_path = os.path.join(path_to_target_dir, 'bar_chart.png')
+        save_path = os.path.join(path_to_fig_dir, 'bar_chart.{}'.format(save_format))
         bar_width = 0.3
         mp = result['map']
         label = [str(r) for r in mp]
@@ -218,21 +229,17 @@ def save_figs(path_to_target_dir, cfg):
         plt.xlabel('prd/gt or img/gt')
         plt.ylabel('static_num/data_size')
         # plt.show()
-        plt.savefig(save_path, format='png')
+        plt.savefig(save_path, format=save_format)
         plt.clf()
 
 
-def static_group(path_to_target_dir, cfg):
+def static_group(path_to_target_dir, cfg, static_topic):
     """
     This function is used to do some static calculation and save result in a json file for further operation.
     :param path_to_target_dir:
     :param mp:
     :return:
     """
-    if os.path.exists(os.path.join(path_to_target_dir, 'result.json')):
-        print("result.json has already exists.")
-        return
-    static_topic = ['prd2gt_count', 'img2gt_count', 'el1_prd', 'el1_img', 'gt', 'top_group']
     path_to_gt = os.path.join(path_to_target_dir, 'gt.npy')
     path_to_image = os.path.join(path_to_target_dir, 'image.npy')
     path_to_pred = os.path.join(path_to_target_dir, 'pred.npy')
@@ -243,16 +250,19 @@ def static_group(path_to_target_dir, cfg):
 
     result = dict(map=cfg['result_cfg']['map'])
     if 'prd2gt_count' in static_topic:
-        result['prd2gt_count'] = static_data_by_map(np.array(pred / (gt + 1e-6)), cfg['result_cfg']['map'])
+        result['prd2gt_count'] = static_data_by_map(np.array(np.abs(pred - gt) / (gt + 1e-6)), cfg['result_cfg']['map'])
     if 'img2gt_count' in static_topic:
-        result['img2gt_count'] = static_data_by_map(np.array(image / (gt + 1e-6)), cfg['result_cfg']['map'])
+        result['img2gt_count'] = static_data_by_map(np.array(np.abs(image - gt) / (gt + 1e-6)), cfg['result_cfg']['map'])
     if 'el1_prd' in static_topic:
         result['el1_prd'] = np.linalg.norm((pred - gt).flatten(), 1) / np.size(gt)
     if 'el1_img' in static_topic:
         result['el1_img'] = np.linalg.norm((image - gt).flatten(), 1) / np.size(gt)
+    if 'whole_mean' in static_topic:
+        result['whole_mean'] = np.mean((pred - gt).flatten())
+    if 'run_time' in static_topic:
+        result['run_time'] = np.load(os.path.join(path_to_target_dir, 'run_time.npy')).flatten()[0]
     if 'gt' in static_topic:
         path_to_gt = os.path.join(path_to_target_dir, '{}.npy'.format('gt'))
-        path_to_save_gt_fig = os.path.join(path_to_gt.rsplit(os.sep, 1)[0], 'gt_static.png')
         car_name = path_to_gt.rsplit(os.sep, 2)[1].split('_')[-4]
         gt_data = np.load(path_to_gt)
         gt_max = gt_data.max()
@@ -275,20 +285,16 @@ def static_group(path_to_target_dir, cfg):
             dist = np.abs(gt_static_cumsum - p)
             portion_thr.append(gt_ruler[np.argmin(dist)])
         static_result = np.zeros(shape=(2, len(portion_cumsum), len(cfg['result_cfg']['map'])))
-        std = np.std(gt.flatten().squeeze())
-        gt_std = gt.copy()
-        gt_std[gt <= std / 3] = std * 3
+        gt_std = gt + 1e-6
         for i in range(len(portion_thr) - 1):
             plant = np.zeros(np.shape(gt))
             plant[(gt >= portion_thr[i + 1]) & (gt < portion_thr[i])] = 100
-            # show_volume(plant)
-            img2gt = (image / gt_std)[(gt >= portion_thr[i + 1]) & (gt < portion_thr[i])]
-            prd2gt = (pred / gt_std)[(gt >= portion_thr[i + 1]) & (gt < portion_thr[i])]
+            img2gt = (np.abs(image - gt) / gt_std)[(gt >= portion_thr[i + 1]) & (gt < portion_thr[i])]
+            prd2gt = (np.abs(pred - gt) / gt_std)[(gt >= portion_thr[i + 1]) & (gt < portion_thr[i])]
             static_result[0, i, :] = np.array(static_data_by_map(img2gt.flatten(), cfg['result_cfg']['map']))
             static_result[1, i, :] = np.array(static_data_by_map(prd2gt.flatten(), cfg['result_cfg']['map']))
         result['top_group_static_result'] = static_result.tolist()
         result['top_group_static_shape'] = np.shape(static_result)
-
 
     with open(json_path, 'w') as result_file:
         json.dump(result, result_file)
@@ -298,5 +304,35 @@ if __name__ == '__main__':
     for (dirpath, dirnames, filenames) in os.walk(work_dir):
         if 'uniform' in dirpath and 'copy' not in dirpath and 'gt.npy' in filenames:
             print("processing {}".format(dirpath))
-            static_group(dirpath, pred_cfg)
-            save_figs(dirpath, pred_cfg)
+            # static part
+            static_topic = [
+                'prd2gt_count',
+                'img2gt_count',
+                'el1_prd',
+                'el1_img',
+                'gt',
+                'top_group',
+                'whole_mean',
+                'run_time',
+            ]
+            # static_group(dirpath, pred_cfg, static_topic)
+
+            # fig part
+            topics = [
+                # 'gt',
+                # 'image',
+                # 'pred',
+                # 'rlt_delta_vmax1',
+                # 'rlt_delta_vmax10',
+                # 'rlt_image_vmax1',
+                # 'rlt_image_vmax10',
+                'top_groups_cmp',
+                # 'top_groups_image',
+                # 'top_groups_pred',
+                # 'gt_static',
+                # 'loss_curve',
+                # 'bar_chart_of_img/prd2gt',
+                # 'save_rlt_delta'
+            ]
+            figdir = os.path.join(dirpath, "figs")
+            save_figs(dirpath, figdir, pred_cfg, topics)

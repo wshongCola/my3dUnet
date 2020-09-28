@@ -24,7 +24,7 @@ def show_volume(filename='images.npy'):
     mlab.show()
 
 def save_fig_by_data(data, path_to_save, vmin=None, vmax=None):
-    mlab.figure(bgcolor=(1, 1, 1))
+    mlab.figure(bgcolor=(1, 1, 1), size=(800, 600))
     mlab.view(azimuth=0, elevation=0, distance=10)
     # yaw the camera (tilt left-right) y
     # pitch the camera (tilt up-down) z

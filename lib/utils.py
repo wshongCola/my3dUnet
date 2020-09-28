@@ -1,5 +1,6 @@
 import os
 import numpy as np
+from lib.data_process.utils import normalization_3d, show_volume
 
 def reload_cfg_from_ckp(cfg, ckp=None):
     if ckp is None:
@@ -22,3 +23,28 @@ def construct_map_from_range(r, add_inf=False):
     if add_inf:
         mp.append([r[-1], np.inf])
     return mp, r
+
+def divide_filelist_into_cartype(file_list):
+    result = {}
+    for file_item in file_list:
+        car_name = file_item.split("_")[0]
+        if car_name in result.keys():
+            result[car_name].append(file_item)
+        else:
+            result[car_name] = [file_item]
+    return result
+
+def convert_np_to_vtk(path_to_np, path_to_save_vtk, name):
+    np_data = np.load(path_to_np)
+    np_data = normalization_3d(np_data)
+    # show_volume(np_data)
+    from tvtk.api import tvtk, write_data
+
+    grid = tvtk.ImageData(spacing=(1, 1, 1), origin=(0, 0, 0))
+    grid.point_data.scalars = np_data.ravel("F")
+    grid.point_data.scalars.name = name
+    grid.dimensions = np_data.shape
+
+    write_data(grid, path_to_save_vtk)
+
+
