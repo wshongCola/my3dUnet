@@ -5,20 +5,20 @@ import numpy as np
 from lib.data_process.utils import show_volume
 
 class MyTestCase(unittest.TestCase):
-    def Vtest_convert_np_to_vtk(self):
+    def test_convert_np_to_vtk(self):
         # path_to_np = "/home/wshong/Documents/data/unet3d_car/narrow_elev/simulate/results/2020-08-20-22-45-52_edelta_1.0_enum_3_uniformed_SNR_10_ntype_Rayleigh_simuTag_True/edelta_1.0_enum_3_uniformed_ToyotaTacoma_41.5000_narrow_elev"
         # path_to_np = "/home/wshong/Documents/data/unet3d_car/narrow_elev/simulate/results/2020-08-20-22-45-52_edelta_1.0_enum_3_uniformed_SNR_10_ntype_Rayleigh_simuTag_True/edelta_1.0_enum_3_uniformed_MazdaMPV_54.0000_narrow_elev"
-        # path_to_np = "/home/wshong/Documents/data/unet3d_car/narrow_elev/simulate/full_sample_gt_uniformed"
-        path_to_np = "/home/wshong/Documents/data/unet3d_car/narrow_elev/simulate/results/2020-08-20-17-16-20_edelta_1.0_enum_3_uniformed_SNR_inf_ntype_None_simuTag_True/edelta_1.0_enum_3_uniformed_ToyotaTacoma_47.5000_narrow_elev"
-        filename = "rlt_delta.npy"
-        name = "WithoutNoisePickup-DLT"
-        # dir_to_save = "/home/wshong/Documents/data/unet3d_car/reports/website/figs"
-        dir_to_save = path_to_np
+        path_to_np = "/home/wshong/Documents/data/unet3d_car/narrow_elev/simulate/full_sample_gt_uniformed"
+        # path_to_np = "/home/wshong/Documents/data/unet3d_car/narrow_elev/simulate/results/2020-08-20-17-16-20_edelta_1.0_enum_3_uniformed_SNR_inf_ntype_None_simuTag_True/edelta_1.0_enum_3_uniformed_ToyotaTacoma_47.5000_narrow_elev"
+        filename = "ToyotaTacoma.npy"
+        name = "ToyotaTacoma"
+        dir_to_save = "/home/wshong/Documents/data/unet3d_car/reports/article/figs"
+        # dir_to_save = path_to_np
         path_to_save = os.path.join(dir_to_save, name + ".vtk")
         path_to_np = os.path.join(path_to_np, filename)
         convert_np_to_vtk(path_to_np, path_to_save, name)
 
-    def test_subaperture_imaging(self):
+    def Atest_subaperture_imaging(self):
         target_car = "MazdaMPV"
         path_to_data = "/mnt/media/data/3D_rec/out/out_" + target_car
         elevs = np.arange(30, 60, 0.125)
@@ -50,6 +50,19 @@ class MyTestCase(unittest.TestCase):
         grid.dimensions = fimg.shape
 
         write_data(grid, "/home/wshong/Documents/subApertureTest.vtk")
+
+    def Atest_adjust_misconcat(self):
+        file_dir = '/home/wshong/Documents/data/unet3d_car/narrow_elev/simulate/edelta_1.0_enum_3_uniformed/train'
+        for filename in os.listdir(file_dir):
+            file_path = os.path.join(file_dir, filename)
+            data = np.load(file_path)
+            if np.shape(data) == (51, 61, 121):
+                print("{} has been done.".format(filename))
+                continue
+            data = np.concatenate((data[:, :31, :], data[:, 32:, :]), axis=1)
+            # show_volume(data)
+            np.save(file_path, data)
+        print("process done")
 
 
 if __name__ == '__main__':

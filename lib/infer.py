@@ -57,9 +57,9 @@ def predict_pipeline(net, pred_filename, cfg):
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
-    np.save(os.path.join(save_dir, 'image.npy'), image)
-    np.save(os.path.join(save_dir, 'gt.npy'), gt)
-    np.save(os.path.join(save_dir, 'pred.npy'), pred)
+    np.save(os.path.join(save_dir, 'image.npy'), image[:51, :61, :121])
+    np.save(os.path.join(save_dir, 'gt.npy'), gt[:51, :61, :121])
+    np.save(os.path.join(save_dir, 'pred.npy'), pred[:51, :61, :121])
     np.save(os.path.join(save_dir, 'run_time.npy'), run_time)
 
     print("[INFO] Process done for {}".format(pred_filename))

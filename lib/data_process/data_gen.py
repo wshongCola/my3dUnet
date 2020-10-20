@@ -19,6 +19,7 @@ def gen_entire_cars():
         data['mirror'] = compose_angles(car_path, azimuth_list=back_and_mirror['mirror'])
         entire_image = concat_back_and_mirror(data)
         absolute_image = np.absolute(entire_image)
+        show_volume(absolute_image)
         save_path = os.path.join(car_path, 'entire_car.npy')
         np.save(save_path, absolute_image)
 
@@ -173,9 +174,10 @@ def gen_narrow_elev_images():
             delta_str = format(elev_list[0], '.4f')
             data = concat_back_and_mirror({
                 'back': data,
+                #'mirror': np.ones(np.shape(data)),
                 'mirror': data
             })
-            absolute_image = np.absolute(data)
+            absolute_image = np.absolute(data)/3 # uniformed
             # show_volume(absolute_image)
             save_dir = simulate_train_dir
             if car_name in val_car_names:
@@ -193,4 +195,5 @@ if __name__ == "__main__":
     # l = len(all_car_names)
     # pool.map(gen_narrow_elev_images, range(0, l))
     # pool.close()
-    gen_narrow_elev_images()
+    # gen_narrow_elev_images()
+    gen_entire_cars()

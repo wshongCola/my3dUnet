@@ -5,7 +5,7 @@ import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 from lib.data_process.utils import show_volume, static_data_by_step, static_data_by_map, save_fig_by_data, \
     show_volume_with_title, normalization_3d
-from lib.utils import construct_map_from_range
+from lib.utils import construct_map_from_range, convert_np_to_vtk
 from lib.config import pred_cfg
 import json
 
@@ -20,10 +20,37 @@ def save_figs(path_to_target_dir, path_to_fig_dir, cfg, topics):
     gt = np.load(os.path.join(path_to_target_dir, '{}.npy'.format('gt')))
     image = np.load(os.path.join(path_to_target_dir, '{}.npy'.format('image')))
     pred = np.load(os.path.join(path_to_target_dir, '{}.npy'.format('pred')))
-    json_path = os.path.join(path_to_target_dir, 'result.json')
-    save_format = "eps"
-    with open(json_path, 'r') as json_reader:
-        result = json.load(json_reader)
+    # json_path = os.path.join(path_to_target_dir, 'result.json')
+    # save_format = "eps"
+    # with open(json_path, 'r') as json_reader:
+    #     result = json.load(json_reader)
+    if 'save_rlt_delta':
+        rlt_delta = np.absolute(pred - gt) / (gt + 1.0)
+        np.save(os.path.join(path_to_target_dir, '{}.{}'.format('rlt_delta', "npy")), rlt_delta)
+    if 'gt2vtk'   in topics:
+        convert_np_to_vtk(
+            os.path.join(path_to_target_dir, '{}.npy'.format('gt')),
+            os.path.join(path_to_target_dir, '{}.vtk'.format('gt')),
+            'gt'
+        )
+    if 'img2vtk'  in topics:
+        convert_np_to_vtk(
+            os.path.join(path_to_target_dir, '{}.npy'.format('image')),
+            os.path.join(path_to_target_dir, '{}.vtk'.format('image')),
+            'image'
+        )
+    if 'prd2vtk'  in topics:
+        convert_np_to_vtk(
+            os.path.join(path_to_target_dir, '{}.npy'.format('pred')),
+            os.path.join(path_to_target_dir, '{}.vtk'.format('pred')),
+            'pred'
+        )
+    if 'delta2vtk'in topics:
+        convert_np_to_vtk(
+            os.path.join(path_to_target_dir, '{}.npy'.format('rlt_delta')),
+            os.path.join(path_to_target_dir, '{}.vtk'.format('rlt_delta')),
+            'rlt_delta'
+        )
     if 'gt' in topics:
         save_fig_by_data(
             gt,
@@ -40,9 +67,6 @@ def save_figs(path_to_target_dir, path_to_fig_dir, cfg, topics):
             os.path.join(path_to_fig_dir, '{}.{}'.format('pred', "jpg")),
             vmax=10
         )
-    if 'save_rlt_delta':
-        rlt_delta = np.absolute(pred - gt) / (gt + 1.0)
-        np.save(os.path.join(path_to_target_dir, '{}.{}'.format('rlt_delta', "npy")), rlt_delta)
     if 'rlt_delta_vmax1' in topics:
         save_fig_by_data(
             np.absolute(pred - gt) / (gt + 1.0),
@@ -326,13 +350,17 @@ if __name__ == '__main__':
                 # 'rlt_delta_vmax10',
                 # 'rlt_image_vmax1',
                 # 'rlt_image_vmax10',
-                'top_groups_cmp',
+                # 'top_groups_cmp',
                 # 'top_groups_image',
                 # 'top_groups_pred',
                 # 'gt_static',
                 # 'loss_curve',
                 # 'bar_chart_of_img/prd2gt',
-                # 'save_rlt_delta'
+                'save_rlt_delta',
+                'gt2vtk',
+                'img2vtk',
+                'prd2vtk',
+                'delta2vtk'
             ]
             figdir = os.path.join(dirpath, "figs")
             save_figs(dirpath, figdir, pred_cfg, topics)

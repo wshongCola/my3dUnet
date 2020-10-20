@@ -35,7 +35,7 @@ SNR = 2 #dB
 noise_type = 'Gamma'
 noise_action = 'Multiple'
 simulate_tag = True
-file_config = '_'.join(['edelta', str(elev_delta), 'enum', str(elev_num)])
+file_config = '_'.join(['edelta', str(elev_delta), 'enum', str(elev_num), 'uniformed'])
 
 # auto generate config
 simulate_train_dir = os.path.join(work_dir, 'simulate', file_config.split('_SNR')[0], 'train')

@@ -72,7 +72,7 @@ def split_back_and_mirror(azimuth_list):
     return result
 
 def concat_back_and_mirror(data):
-    return np.concatenate((data['mirror'][:, ::-1, :], data['back']), axis=1)
+    return np.concatenate((data['mirror'][:, ::-1, :][:, :-1:, :], data['back']), axis=1)
 
 
 def compose_angles(dir_path, pitch_angle_list=None, azimuth_list=None):
