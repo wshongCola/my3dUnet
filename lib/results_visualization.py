@@ -20,10 +20,10 @@ def save_figs(path_to_target_dir, path_to_fig_dir, cfg, topics):
     gt = np.load(os.path.join(path_to_target_dir, '{}.npy'.format('gt')))
     image = np.load(os.path.join(path_to_target_dir, '{}.npy'.format('image')))
     pred = np.load(os.path.join(path_to_target_dir, '{}.npy'.format('pred')))
-    # json_path = os.path.join(path_to_target_dir, 'result.json')
-    # save_format = "eps"
-    # with open(json_path, 'r') as json_reader:
-    #     result = json.load(json_reader)
+    json_path = os.path.join(path_to_target_dir, 'result.json')
+    save_format = "eps"
+    with open(json_path, 'r') as json_reader:
+        result = json.load(json_reader)
     if 'save_rlt_delta':
         rlt_delta = np.absolute(pred - gt) / (gt + 1.0)
         np.save(os.path.join(path_to_target_dir, '{}.{}'.format('rlt_delta', "npy")), rlt_delta)
@@ -181,9 +181,26 @@ def save_figs(path_to_target_dir, path_to_fig_dir, cfg, topics):
             if i ==0:
                 top_range = "{}-{}".format(0, portion_cumsum[i])
                 save_path = os.path.join(path_to_fig_dir, 'TopGroupCmp-{}.{}'.format(top_range, save_format))
+                if "MPV" in path_to_fig_dir and "inf" in path_to_fig_dir:
+                    save_path_png = os.path.join(path_to_fig_dir, 'WithoutNoiseMPV-0-0001.png')
+                if "MPV" in path_to_fig_dir and "inf" not in path_to_fig_dir:
+                    save_path_png = os.path.join(path_to_fig_dir, 'WithNoiseMPV-0-0001.png')
+                if "Tacoma" in path_to_fig_dir and "inf" in path_to_fig_dir:
+                    save_path_png = os.path.join(path_to_fig_dir, 'WithoutNoisePickup-0-0001.png')
+                if "Tacoma" in path_to_fig_dir and "inf" not in path_to_fig_dir:
+                    save_path_png = os.path.join(path_to_fig_dir, 'WithNoisePickup-0-0001.png')
             else:
                 top_range = "{}-{}".format(portion_cumsum[i - 1], portion_cumsum[i])
+                top_range_png = '%04d' %(portion_cumsum[i - 1]*1000) + '-' + '%04d' %(portion_cumsum[i]*1000)
                 save_path = os.path.join(path_to_fig_dir, 'TopGroupCmp-{}.{}'.format(top_range, save_format))
+                if "MPV" in path_to_fig_dir and "inf" in path_to_fig_dir:
+                    save_path_png = os.path.join(path_to_fig_dir, 'WithoutNoiseMPV-{}.png'.format(top_range_png))
+                if "MPV" in path_to_fig_dir and "inf" not in path_to_fig_dir:
+                    save_path_png = os.path.join(path_to_fig_dir, 'WithNoiseMPV-{}.png'.format(top_range_png))
+                if "Tacoma" in path_to_fig_dir and "inf" in path_to_fig_dir:
+                    save_path_png = os.path.join(path_to_fig_dir, 'WithoutNoisePickup-{}.png'.format(top_range_png))
+                if "Tacoma" in path_to_fig_dir and "inf" not in path_to_fig_dir:
+                    save_path_png = os.path.join(path_to_fig_dir, 'WithNoisePickup-{}.png'.format(top_range_png))
             mp = cfg['result_cfg']['map']
             label = [str(r[1]) for r in mp]
             x = np.arange(len(static_result[0, 0, :]))
@@ -209,10 +226,11 @@ def save_figs(path_to_target_dir, path_to_fig_dir, cfg, topics):
                      'size': 30,
                      }
             plt.title("Dominant Scatterers Error Histogram \n {}. Orbits:{}. Range:{}".format(car_name, str(angle_list), top_range), font2)
-            plt.xlabel('Absolute Relative Error', font3)
+            plt.xlabel('Relative Absolute Error', font3)
             plt.ylabel('Percentage', font2)
             # plt.show()
             plt.savefig(save_path, format=save_format)
+            plt.savefig(save_path_png, format='png')
             plt.clf()
             plt.close()
     if 'loss_curve' in topics:
@@ -350,17 +368,17 @@ if __name__ == '__main__':
                 # 'rlt_delta_vmax10',
                 # 'rlt_image_vmax1',
                 # 'rlt_image_vmax10',
-                # 'top_groups_cmp',
+                'top_groups_cmp',
                 # 'top_groups_image',
                 # 'top_groups_pred',
                 # 'gt_static',
                 # 'loss_curve',
                 # 'bar_chart_of_img/prd2gt',
-                'save_rlt_delta',
-                'gt2vtk',
-                'img2vtk',
-                'prd2vtk',
-                'delta2vtk'
+                # 'save_rlt_delta',
+                # 'gt2vtk',
+                # 'img2vtk',
+                # 'prd2vtk',
+                # 'delta2vtk'
             ]
             figdir = os.path.join(dirpath, "figs")
             save_figs(dirpath, figdir, pred_cfg, topics)
